@@ -1,58 +1,51 @@
 import { Webhook } from "svix";
-import User from "../models/User.js" 
+import User from "../models/User.js";
 
-//Api controller func to manage Clerk user with database
+export const clerkWebhooks = async (req, res) => {
+    try {
+        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
+        
+        await whook.verify(req.body, {
+            "svix-id": req.headers["svix-id"],
+            "svix-timestamp": req.headers["svix-timestamp"],
+            "svix-signature": req.headers["svix-signature"]
+        })
 
-export const clerkWebhooks =async (req,res)=>{
+        const { data, type } = JSON.parse(req.body)
 
-   
-    const payload=JSON.parse(req.body);
-    try{
-        const whook=new Webhook(process.env.CLERK_WEBHOOK_SECRET)
-        await whook.verify(JSON.stringify(req.body),{
-             "svix-id":req.headers["svix-id"],
-             "svix-timestamp":req.headers["svix-timestamp"],"svix-signature":req.headers["svix-signature"]
-            })
-
-            const {data,type}=req.body
-            switch(type){
-                case "user.created":{
-                    const userData={
-                        _id: data.id,
-                        name: `${data.first_name} ${data.last_name}`,
-                        email: data.email_addresses[0].email_address,
-                        imageUrl: data.image_url
-                    }
-                    await User.create(userData)
-                    res.json({})
-                    break;
+        switch (type) {
+            case "user.created": {
+                const userData = {
+                    _id: data.id,
+                    name: `${data.first_name} ${data.last_name}`,
+                    email: data.email_addresses[0].email_address,
+                    imageUrl: data.image_url
                 }
-                    case "user.updated":{
-                       const userData={
-                            name: `${data.first_name} ${data.last_name}`,
-                            email: data.email_addresses[0].email_address,
-                            imageUrl: data.image_url
-                        }
-                    await User.findByIdAndUpdate(data.id,userData)
-                    res.json({})
-                    break;
-                    }
-
-                    case "user.deleted":{
-                        await User.findByIdAndDelete(data.id)
-                        res.json({})
-                        break;
-                    }
-                    default:{
-                        res.json({})
-                        break;
-                    }
-
+                await User.create(userData)
+                res.json({ success: true })
+                break;
             }
+            case "user.updated": {
+                const userData = {
+                    name: `${data.first_name} ${data.last_name}`,
+                    email: data.email_addresses[0].email_address,
+                    imageUrl: data.image_url
+                }
+                await User.findByIdAndUpdate(data.id, userData)
+                res.json({ success: true })
+                break;
+            }
+            case "user.deleted": {
+                await User.findByIdAndDelete(data.id)
+                res.json({ success: true })
+                break;
+            }
+            default: {
+                res.json({ success: true })
+                break;
+            }
+        }
+    } catch (e) {
+        res.status(400).json({ success: false, message: e.message })
     }
-    catch(e){
-       
-        res.json({success:false,message:e.message})
-    }
-
 }
