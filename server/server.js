@@ -5,7 +5,7 @@ import connectDB from './configs/mongodb.js';
 import { clerkWebhooks } from './controllers/webhooks.js';
 
 
-
+//npm run server inside server file
 
  //initialize express
 const app = express();
