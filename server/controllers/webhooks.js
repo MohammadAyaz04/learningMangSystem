@@ -59,10 +59,10 @@ export const stripeWebhooks=async(req,res)=>{
     const sig=req.headers['stripe-signature'];
     let event;
     try{
-        event=Stripe.webhooks.constructEvent(req.body,sig,process.env.STRIPE_WEBHOOK_SECRET_KEY);
+        event=stripe.webhooks.constructEvent(req.body,sig,process.env.STRIPE_WEBHOOK_SECRET_KEY);
     }
     catch(error){
-        res.status(400).send(`Webhook error: ${error.message}`)
+       return res.status(400).send(`Webhook error: ${error.message}`)
        
     }
     // Handle the event
@@ -71,13 +71,13 @@ switch (event.type) {
     const paymentIntent = event.data.object;
     const paymentIntentId=paymentIntent.id;
     const session= await stripe.checkout.sessions.list({
-        paymnet_intent:paymentIntentId
+        payment_intent:paymentIntentId
     })
     const {purchaseId}=session.data[0].metadata;
     const purchaseData=await Purchase.findById(purchaseId)
     const userData=await User.findById(purchaseData.userId)
     const courseData=await Course.findById(purchaseData.courseId.toString())
-    courseData.enrolledStudents.push(userData)
+    courseData.enrolledStudents.push(userData._id)
     await courseData.save()
 
     userData.enrolledCourses.push(courseData._id)
@@ -91,7 +91,7 @@ switch (event.type) {
     const paymentIntent = event.data.object;
     const paymentIntentId=paymentIntent.id;
     const session= await stripe.checkout.sessions.list({
-        paymnet_intent:paymentIntentId
+        payment_intent:paymentIntentId
     })
     const {purchaseId}=session.data[0].metadata;
     const purchaseData=await Purchase.findById(purchaseId)
@@ -105,6 +105,6 @@ switch (event.type) {
 }
 
 // Return a response to acknowledge receipt of the event
-response.json({received: true});
+res.json({received: true});
 
 } 
