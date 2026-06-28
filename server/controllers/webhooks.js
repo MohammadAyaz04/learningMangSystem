@@ -6,7 +6,7 @@ import Course from "../models/Courses.js";
 
 export const clerkWebhooks = async (req, res) => {
     try {
-        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
+        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET_KEY)
         
         await whook.verify(JSON.stringify(req.body), {
             "svix-id": req.headers["svix-id"],
