@@ -5,6 +5,10 @@ import connectDB from './configs/mongodb.js';
 import { clerkWebhooks } from './controllers/webhooks.js';
 import educatorRouter from './routes/educatorRoutes.js';
 import {clerkMiddleware} from '@clerk/express'
+import connectCloudinary from './configs/cloudinary.js';
+import courseRouter from './routes/courseRoute.js'
+import userRouter from './routes/userRoutes.js'
+import { stripeWebhooks } from './controllers/webhooks.js'
 
 
 //npm run server inside server file
@@ -17,7 +21,8 @@ app.use(cors());
 app.use(clerkMiddleware())
 
 //connect to database
-connectDB();
+await connectDB();
+await connectCloudinary()
 
 
 //Routes
@@ -26,6 +31,10 @@ app.get("/", (req, res) => {
 });
 app.post('/clerk',express.json(),clerkWebhooks)
 app.use('/api/educator',express.json(),educatorRouter)
+app.use('/api/courses',express.json(),courseRouter)
+app.use('/api/user',express.json(),userRouter)
+app.post('/stripe',express.raw({type:'application/json'}),stripeWebhooks)
+
 
 //Port
 const PORT = process.env.PORT || 3000;
@@ -36,3 +45,6 @@ app.listen(PORT, () => {
 
 
 export default app; 
+
+// Your API = routes + middleware + controllers + models, all wired together in your Express app. When someone says "call the API," they mean: hit a route → pass through middleware → run the controller → controller talks to the model/database → response goes back.
+// You're not building "an API" as some separate fifth thing — the Express backend you've been building this whole time (Eduno's server) is the API.    
