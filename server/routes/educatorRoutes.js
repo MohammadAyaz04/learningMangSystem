@@ -5,7 +5,7 @@ import upload from '../configs/multer.js'
 const educatorRouter=express.Router()
 
 //add eductor role
-educatorRouter.get('/update-role',updateRoleToEducator)
+educatorRouter.get('/update-role',protecteducator,updateRoleToEducator)
 educatorRouter.post('/add-course', protecteducator, upload.single('image'), addCourse)
 educatorRouter.get('/courses', protecteducator, getEducatorCourses)
 
