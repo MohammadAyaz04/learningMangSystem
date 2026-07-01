@@ -29,7 +29,7 @@ await connectCloudinary()
 app.get("/", (req, res) => {
     res.send("Learning Management System API is running");
 });
-app.post('/clerk',express.json(),clerkWebhooks)
+app.post('/clerk', express.raw({type: 'application/json'}), clerkWebhooks)
 app.use('/api/educator',express.json(),educatorRouter)
 app.use('/api/courses',express.json(),courseRouter)
 app.use('/api/user',express.json(),userRouter)
