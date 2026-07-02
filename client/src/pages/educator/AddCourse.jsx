@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import uniqid from 'uniqid'
 import Quill from 'quill'
 import { AppContext } from '../../context/AppContext';
 import { useState,useEffect,useRef } from 'react';
 import {assets} from '../../assets/assets';
 import {useNavigate} from 'react-router-dom';
+ import axios from 'axios';
+ import { toast } from 'react-toastify';
 
 const AddCourse = () => {
 
+  const {backendUrl,getToken}=useContext(AppContext)
   const quillRef=useRef(null);
   const editorRef=useRef(null);
 
@@ -18,11 +21,12 @@ const AddCourse = () => {
   const [chapters,setChapters]=useState([])
 const [showPopup,setShowPopup]=useState(false);
 const [currentChapterId,setCurrentChapterId]=useState(null)
+
 const [lectureDetails,setLectureDetails]=useState({
 
   lectureTitle:'',
   lectureDuration:'',
-  lectureUrl:' ',
+  lectureUrl:'',
   isPreviewFree:false
   
 })
@@ -108,12 +112,42 @@ const addLecture = () => {
 } 
 
  const handleSubmit=async(e)=>{
-  e.preventDefault()
-  if(quillRef.current.root.innerHTML==='<p></p>'){
-    alert('Please add course description')
-    return
+ 
+  try {
+     e.preventDefault()
+     if(!image){
+      toast.error('Thumbnail Not Selected')
+      return
+     }
+     const courseData={
+      courseTitle,
+      courseDescription:quillRef.current.root.innerHTML,
+      coursePrice:Number(coursePrice),
+      discount:Number(discount),
+      courseContent:chapters,
+     }
+     const formData=new FormData();
+     formData.append('courseData',JSON.stringify(courseData))
+     formData.append('image',image)
+
+     const token=await getToken();
+     const {data}=await axios.post(backendUrl+ '/api/educator/add-course',formData,{headers:{Authorization :`Bearer ${token}`}})
+
+if(data.success){
+  toast.success(data.message)
+  setCourseTitle('')
+  setCoursePrice(0);
+  setDiscount(0);
+  setImage(null);
+  setChapters([])
+  quillRef.current.root.innerHTML=""
+}else{
+  toast.error(data.message)
+}
+
+  } catch (error) {
+    toast.error(error.message)
   }
-  const formData=new FormData()
 
  }
 
